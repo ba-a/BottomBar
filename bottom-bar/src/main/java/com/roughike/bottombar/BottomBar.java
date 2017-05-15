@@ -1056,17 +1056,21 @@ public class BottomBar extends RelativeLayout implements View.OnClickListener, V
                 @SuppressWarnings("deprecation")
                 @Override
                 public void onGlobalLayout() {
+                    if(getOuterContainer() == null || getOuterContainer().getHeight() == 0) {
+                        return;
+                    }
                     if (!mShyHeightAlreadyCalculated) {
                         ((CoordinatorLayout.LayoutParams) getLayoutParams())
                                 .setBehavior(new BottomNavigationBehavior(getOuterContainer().getHeight(), 0, isShy(), mIsTabletMode));
                     }
 
                     ViewTreeObserver obs = getViewTreeObserver();
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        obs.removeOnGlobalLayoutListener(this);
-                    } else {
-                        obs.removeGlobalOnLayoutListener(this);
+                    if(obs.isAlive()) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            obs.removeOnGlobalLayoutListener(this);
+                        } else {
+                            obs.removeGlobalOnLayoutListener(this);
+                        }
                     }
                 }
             });
@@ -1771,14 +1775,19 @@ public class BottomBar extends RelativeLayout implements View.OnClickListener, V
 
             final View outerContainer = bottomBar.getOuterContainer();
             final int navBarHeightCopy = navBarHeight;
+
             bottomBar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @SuppressWarnings("deprecation")
                 @Override
                 public void onGlobalLayout() {
-                    bottomBar.shyHeightAlreadyCalculated();
-
                     int newHeight = outerContainer.getHeight() + navBarHeightCopy;
                     outerContainer.getLayoutParams().height = newHeight;
+
+                    if(newHeight == 0) {
+                        return;
+                    }
+
+                    bottomBar.shyHeightAlreadyCalculated();
 
                     if (bottomBar.isShy()) {
                         int defaultOffset = bottomBar.useExtraOffset() ? navBarHeightCopy : 0;
@@ -1787,12 +1796,13 @@ public class BottomBar extends RelativeLayout implements View.OnClickListener, V
                                 .setBehavior(new BottomNavigationBehavior(newHeight, defaultOffset, bottomBar.isShy(), bottomBar.mIsTabletMode));
                     }
 
-                    ViewTreeObserver obs = outerContainer.getViewTreeObserver();
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        obs.removeOnGlobalLayoutListener(this);
-                    } else {
-                        obs.removeGlobalOnLayoutListener(this);
+                    ViewTreeObserver obs = bottomBar.getViewTreeObserver();
+                    if(obs.isAlive()) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            obs.removeOnGlobalLayoutListener(this);
+                        } else {
+                            obs.removeGlobalOnLayoutListener(this);
+                        }
                     }
                 }
             });
